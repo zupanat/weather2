@@ -4,19 +4,29 @@ import time
 
 
 def fetch_weather_and_aqi(lat, lon):
-    print(f"กำลังดึงข้อมูลสภาพอากาศและ AQI สำหรับพิกัด {lat}, {lon}...")
+    print(f"Fetching weather and AQI for coordinates {lat}, {lon}...")
     airvisual_url = f'http://api.airvisual.com/v2/nearest_city?lat={lat}&lon={lon}&key=d7ea92de-7993-4b87-8cb1-a1da9604c5c4'
     response = requests.get(airvisual_url).json()
-    if 'data' in response:
-        aqi = response['data']['current']['pollution']['aqius']
-        temperature = response['data']['current']['weather']['tp']
-        weather_condition_icon = response['data']['current']['weather']['ic']
+
+    # Use .get() to avoid KeyError
+    data = response.get('data', {})
+    current = data.get('current', {})
+
+    pollution = current.get('pollution', {})
+    aqi = pollution.get('aqius', None)
+
+    weather = current.get('weather', {})
+    temperature = weather.get('tp', None)
+    weather_condition_icon = weather.get('ic', None)
+
+    if aqi and temperature and weather_condition_icon:
         weather_description = get_weather_description(weather_condition_icon)
-        print(f"AQI: {aqi}, อุณหภูมิ: {temperature}°C, สภาพอากาศ: {weather_description}")
+        print(f"AQI: {aqi}, Temperature: {temperature}°C, Weather: {weather_description}")
         return aqi, temperature, weather_description
     else:
-        print("ไม่สามารถดึงข้อมูลได้")
+        print("Required data is missing in the API response")
         return None, None, None
+
 
 
 def get_weather_description(icon_code):
