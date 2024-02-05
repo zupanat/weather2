@@ -1,6 +1,10 @@
+from flask import Flask, jsonify
+import threading
 import requests
 import schedule
 import time
+
+app = Flask(__name__)
 
 
 def fetch_weather_and_aqi(lat, lon):
@@ -88,3 +92,27 @@ schedule.every().hour.do(job)
 while True:
     schedule.run_pending()
     time.sleep(1)
+
+def run_scheduler():
+    schedule.every().hour.do(job)
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
+
+@app.route('/')
+def index():
+    return "The scheduler is running. Access /run-job to run the job manually."
+
+@app.route('/run-job')
+def run_job():
+    try:
+        job()
+        return jsonify({"success": True, "message": "Job executed successfully."}), 200
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+
+if __name__ == '__main__':
+    # Start the scheduler in a background thread
+    threading.Thread(target=run_scheduler).start()
+    # Run the Flask app
+    app.run(host='0.0.0.0', port=10000)
