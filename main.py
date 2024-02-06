@@ -98,7 +98,12 @@ def job():
     print("Scheduled job completed.")
 
 def run_scheduler():
+    # Run the job immediately the first time the scheduler starts
+    job()
+
+    # Then schedule it to run at the start of every hour
     schedule.every().hour.do(job)
+
     while True:
         schedule.run_pending()
         time.sleep(1)
