@@ -75,23 +75,26 @@ def send_notification(location, aqi, temperature, weather_description):
 
 
 def job():
-    print("เริ่มต้นงาน...")
-    # Si Racha
-    si_racha_aqi, si_racha_temperature, si_racha_weather = fetch_weather_and_aqi(13.1737, 100.9311)
-    send_notification("ศรีราชา", si_racha_aqi, si_racha_temperature, si_racha_weather)
+    print("Starting scheduled job...")
 
-    # Bang Lamung
-    bang_lamung_aqi, bang_lamung_temperature, bang_lamung_weather = fetch_weather_and_aqi(12.9276, 100.8771)
-    send_notification("บางละมุง", bang_lamung_aqi, bang_lamung_temperature, bang_lamung_weather)
+    # Define locations with their latitudes and longitudes
+    locations = {
+        "Si Racha": (13.1737, 100.9311),
+        "Bang Lamung": (12.9276, 100.8771)
+    }
 
+    # Loop through each location, fetch weather and AQI, and send notifications
+    for location, (lat, lon) in locations.items():
+        try:
+            aqi, temperature, weather_description = fetch_weather_and_aqi(lat, lon)
+            if aqi is not None and temperature is not None and weather_description is not None:
+                send_notification(location, aqi, temperature, weather_description)
+            else:
+                print(f"Failed to fetch data for {location}.")
+        except Exception as e:
+            print(f"An error occurred for {location}: {e}")
 
-# ทำงานทันทีเพื่อทดสอบ จากนั้นกำหนดตารางเวลาทุกๆ ชั่วโมง
-job()
-schedule.every().hour.do(job)
-
-while True:
-    schedule.run_pending()
-    time.sleep(1)
+    print("Scheduled job completed.")
 
 def run_scheduler():
     schedule.every().hour.do(job)
@@ -110,6 +113,11 @@ def run_job():
         return jsonify({"success": True, "message": "Job executed successfully."}), 200
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
+
+@app.route('/healthz')
+def healthz():
+    # Perform necessary sanity checks here. For simplicity, this example will just return a 200 OK response.
+    return "OK", 200
 
 if __name__ == '__main__':
     # Start the scheduler in a background thread
