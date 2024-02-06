@@ -113,6 +113,6 @@ def run_job():
 
 if __name__ == '__main__':
     # Start the scheduler in a background thread
-    threading.Thread(target=run_scheduler).start()
+    threading.Thread(target=run_scheduler, daemon=True).start()
     # Run the Flask app
-    app.run(host='0.0.0.0', port=10000)
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 10000)))
