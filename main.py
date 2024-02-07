@@ -32,7 +32,22 @@ def fetch_weather_and_aqi(lat, lon):
         print("Required data is missing in the API response")
         return None, None, None
 
-
+def fetch_weather_and_aqi_with_retry(lat, lon, max_retries=3):
+    retries = 0
+    while retries < max_retries:
+        try:
+            response = requests.get(f'http://api.airvisual.com/v2/nearest_city?lat={lat}&lon={lon}&key=d7ea92de-7993-4b87-8cb1-a1da9604c5c4')
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            print(f"Request failed: {e}")
+            retries += 1
+            if retries < max_retries:
+                print(f"Retrying in 5 seconds...")
+                time.sleep(5)
+            else:
+                print("Max retries exceeded.")
+                break
 
 def get_weather_description(icon_code):
     descriptions = {
